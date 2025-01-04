@@ -84,7 +84,7 @@
 // export default App
 
 
-import React, { useState, useCallback ,useEffect} from 'react'
+import React, { useState, useCallback ,useEffect,useRef} from 'react'
 
 const App = () => {
   const [length, setlength] = useState(8);
@@ -92,6 +92,11 @@ const App = () => {
   const [characterAllowed, setcharacterAllowed] = useState(false);
   const [password, setpassword] = useState("");
 
+// refHook
+
+const passwordRef=useRef(null)
+
+  // for optimization k liye usecallback usekrte h means caching
   const passwordGenerator = useCallback(() => {
     var pass = ""
     var str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -99,27 +104,40 @@ const App = () => {
     if (characterAllowed) str += "!@#$&8-_+={}[]~`"
 
     for (let i = 1; i<=length; i++) {
-      let char = Math.floor(Math.random() * str.length + 1)
+      // let char = Math.floor(Math.random() * str.length + 1)
+      let char = Math.floor(Math.random() * str.length);
+
       pass += str.charAt(char)
     }
     setpassword(pass);
   }, [length, characterAllowed, numberAllowed, setpassword])
 
+const copyPasswordClick=useCallback(()=>{
+  passwordRef.current?.select();
+  // setSelectionRange s jitne copy krne uske liye use kiya h
+  passwordRef.current?.setSelectionRange(0,100)
+window.navigator.clipboard.writeText(password)
+},[password])
+  
 useEffect(() =>{
   passwordGenerator();
 },[length,numberAllowed,characterAllowed,passwordGenerator])
   
   return (
     <div className='bg-black   w-full h-screen py-8'>
-      <div className='text-3xl text-white text-center w-full max-w-md px-4 py-3 shadow-md rounded-lg mx-auto   bg-gray-700 ' >
+      <div className='text-3xl text-black text-center w-full max-w-md px-4 py-3 shadow-md rounded-lg mx-auto   bg-gray-700 ' >
 
         <h1>Password Grenerator</h1>
         <div className='flex shadow rounded-lg overflow-hidden mb-4 gap-4'>
-          <input className='w-full outline-none py-1 px-3' type="text" value={password}
+          <input className='w-full outline-none py-1 px-3' type="text"
+           value={password}
             placeholder='password'
             readOnly
+            ref={passwordRef}
           />
-          <button className='outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0'>copy</button>
+          <button
+          onClick={copyPasswordClick}
+           className='outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0'>copy</button>
         </div>
         {/* lowerpart */}
         <div className='flex text-sm gap-x-2'>
@@ -147,9 +165,9 @@ useEffect(() =>{
           <div className='flex items-center gap-x-1'>
             <input type="checkbox"
               defaultChecked={characterAllowed}
-              id='numberInput'
+              id='characterInput'
               onChange={() => {
-                setnumberAllowed((
+                setcharacterAllowed((
                   prev) => !prev)
               }}
             />
@@ -157,13 +175,6 @@ useEffect(() =>{
           </div>
         </div>
       </div>
-
-
-
-
-
-
-
     </div>
   )
 }
